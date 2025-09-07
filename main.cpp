@@ -220,7 +220,13 @@ int main() {
 		while (peekmessage(&msg)) {
 			scene_manager.on_input(msg);
 		}
-		scene_manager.on_update();
+
+		// º∆À„delta ±º‰
+		static DWORD last_tick_time = GetTickCount();
+		DWORD current_tick_time = GetTickCount();
+		DWORD delta_tick = current_tick_time - last_tick_time;
+		last_tick_time = current_tick_time;
+		scene_manager.on_update(delta_tick);
 
 		cleardevice();
 		scene_manager.on_draw();

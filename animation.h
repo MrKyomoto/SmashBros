@@ -33,7 +33,7 @@ public:
 		this->callback = callback;
 	}
 
-	// idx_frame会在外部自动更新因此我们不再提供set方法
+	// idx_frame会在update时自动更新因此我们不再提供set方法
 
 	int get_idx_frame() {
 		return idx_frame;
@@ -50,6 +50,7 @@ public:
 	}
 
 	// 动画更新|渲染逻辑
+
 	void on_update(int delta) {
 		timer += delta;
 		if (timer >= interval) {
@@ -57,6 +58,9 @@ public:
 			idx_frame++;
 			if (idx_frame >= atlas->get_size()) {
 				idx_frame = is_loop ? 0 : atlas->get_size() - 1;
+				if (!is_loop && callback) {
+					callback();
+				}
 			}
 		}
 	}

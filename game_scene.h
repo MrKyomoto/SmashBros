@@ -15,7 +15,7 @@ public:
 		std::cout << "Come to the Game Menu" << std::endl;
 	}
 
-	void on_update() {
+	void on_update(int delta) {
 		std::cout << "Running game menu" << std::endl;
 	}
 
