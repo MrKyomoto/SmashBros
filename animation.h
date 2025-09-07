@@ -29,6 +29,10 @@ public:
 		interval = ms;
 	}
 
+	void set_callback(std::function<void()> callback) {
+		this->callback = callback;
+	}
+
 	// idx_frame会在外部自动更新因此我们不再提供set方法
 
 	int get_idx_frame() {
