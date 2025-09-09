@@ -135,6 +135,7 @@
     <ClInclude Include="scene.h" />
     <ClInclude Include="scene_manager.h" />
     <ClInclude Include="selector_scene.h" />
+    <ClInclude Include="timer.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="vector2.h" />
   </ItemGroup>

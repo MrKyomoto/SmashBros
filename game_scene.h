@@ -1,6 +1,7 @@
 #pragma once
 #include "scene.h"
 #include "scene_manager.h"
+#include "camera.h"
 #include <iostream>
 
 extern SceneManager scene_manager;
@@ -19,7 +20,7 @@ public:
 		std::cout << "Running game menu" << std::endl;
 	}
 
-	void on_draw() {
+	void on_draw(const Camera& camera) {
 		outtextxy(10, 10, _T("draw in game menu"));
 	}
 

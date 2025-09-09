@@ -1,5 +1,6 @@
 #pragma once
 #include <graphics.h>
+#include "camera.h"
 
 #pragma comment(lib,"MSIMG32.LIB")
 
@@ -23,5 +24,14 @@ inline void putimage_alpha(int dst_x, int dst_y, IMAGE* img) {
 	int height = img->getheight();
 	// 这个函数本身和putimage作用重叠,只是这个函数绘制的是带alpha通道的
 	AlphaBlend(GetImageHDC(GetWorkingImage()), dst_x, dst_y, width, height,
+		GetImageHDC(img), 0, 0, width, height, { AC_SRC_OVER,0,255,AC_SRC_ALPHA });
+}
+
+inline void putimage_alpha(const Camera& camera, int dst_x, int dst_y, IMAGE* img) {
+	int width = img->getwidth();
+	int height = img->getheight();
+	const Vector2& pos_camera = camera.get_position();
+	// 这个函数本身和putimage作用重叠,只是这个函数绘制的是带alpha通道的
+	AlphaBlend(GetImageHDC(GetWorkingImage()), (int)dst_x - pos_camera.x, (int)dst_y - pos_camera.y, width, height,
 		GetImageHDC(img), 0, 0, width, height, { AC_SRC_OVER,0,255,AC_SRC_ALPHA });
 }

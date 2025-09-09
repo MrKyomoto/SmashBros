@@ -9,6 +9,7 @@
 #include "game_scene.h"
 #include "selector_scene.h"
 #include "scene_manager.h"
+#include "camera.h"
 
 IMAGE img_menu_background;
 
@@ -90,6 +91,7 @@ Scene* game_scene = nullptr;
 Scene* selector_scene = nullptr;
 
 SceneManager scene_manager;
+Camera main_camera;
 
 void flip_atlas(Atlas& src, Atlas& dst) {
 	dst.clear();
@@ -114,7 +116,7 @@ void load_game_resources() {
 	loadimage(&img_1P_desc, _T("resources/1P_desc.png"));
 	loadimage(&img_2P_desc, _T("resources/2P_desc.png"));
 
-	loadimage(&img_gravestone_right, _T("resources/gravstone.png"));
+	loadimage(&img_gravestone_right, _T("resources/gravestone.png"));
 	flip_image(&img_gravestone_right, &img_gravestone_left);
 
 	loadimage(&img_selector_tip, _T("resources/selector_tip.png"));
@@ -229,7 +231,7 @@ int main() {
 		scene_manager.on_update(delta_tick);
 
 		cleardevice();
-		scene_manager.on_draw();
+		scene_manager.on_draw(main_camera);
 		FlushBatchDraw();
 
 		DWORD frame_end_time = GetTickCount();
