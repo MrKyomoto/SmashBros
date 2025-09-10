@@ -22,8 +22,8 @@ extern IMAGE img_2P_selector_btn_idle_left;
 extern IMAGE img_2P_selector_btn_idle_right;
 extern IMAGE img_2P_selector_btn_down_left;
 extern IMAGE img_2P_selector_btn_down_right;
-extern IMAGE img_peashotter_selector_background_left;
-extern IMAGE img_peashotter_selector_background_right;
+extern IMAGE img_peashooter_selector_background_left;
+extern IMAGE img_peashooter_selector_background_right;
 extern IMAGE img_sunflower_selector_background_left;
 extern IMAGE img_sunflower_selector_background_right;
 
@@ -87,12 +87,54 @@ public:
 	void on_update(int delta) {
 		animation_peashooter.on_update(delta);
 		animation_sunflower.on_update(delta);
+
+		selector_background_scroll_offset_x += 5;
+		if (selector_background_scroll_offset_x >= img_peashooter_selector_background_left.getwidth()) {
+			selector_background_scroll_offset_x = 0;
+		}
 	}
 
 	void on_draw(const Camera& camera) {
-		outtextxy(10, 10, _T("draw in Selector menu"));
+		IMAGE* img_p1_selector_background = nullptr;
+		IMAGE* img_p2_selector_background = nullptr;
+		switch (player_type_2)
+		{
+		case SelectorScene::PlayerType::Peashooter:
+			img_p1_selector_background = &img_peashooter_selector_background_right;
+			break;
+		case SelectorScene::PlayerType::Sunflower:
+			img_p1_selector_background = &img_sunflower_selector_background_right;
+			break;
+		case SelectorScene::PlayerType::Invalid:
+			img_p1_selector_background = &img_peashooter_selector_background_right;
+			break;
+		default:
+			img_p1_selector_background = &img_peashooter_selector_background_right;
+			break;
+		}
+
+		switch (player_type_1)
+		{
+		case SelectorScene::PlayerType::Peashooter:
+			img_p2_selector_background = &img_peashooter_selector_background_right;
+			break;
+		case SelectorScene::PlayerType::Sunflower:
+			img_p2_selector_background = &img_sunflower_selector_background_right;
+			break;
+		case SelectorScene::PlayerType::Invalid:
+			img_p2_selector_background = &img_peashooter_selector_background_right;
+			break;
+		default:
+			img_p2_selector_background = &img_peashooter_selector_background_right;
+			break;
+		}
 
 		putimage(0, 0, &img_selector_background);
+		// 以selector_background_scroll_offset_x为轴, 第一个putimage在左侧轴绘制, 第二个putimage在右侧轴绘制
+		putimage_alpha(selector_background_scroll_offset_x - img_p1_selector_background->getwidth(), 0, img_p1_selector_background);
+		putimage_alpha(selector_background_scroll_offset_x, 0, img_p1_selector_background->getwidth() - selector_background_scroll_offset_x, 0, img_p1_selector_background, 0, 0);
+		putimage_alpha(getwidth() - img_p2_selector_background->getwidth(), 0, img_p2_selector_background->getwidth() - selector_background_scroll_offset_x, 0, img_p2_selector_background, selector_background_scroll_offset_x, 0);
+		putimage_alpha(getwidth() - selector_background_scroll_offset_x, 0, img_p2_selector_background);
 
 		putimage_alpha(pos_img_VS.x, pos_img_VS.y, &img_VS);
 
@@ -104,9 +146,13 @@ public:
 		{
 		case SelectorScene::PlayerType::Peashooter:
 			animation_peashooter.on_draw(camera, pos_animation_1P.x, pos_animation_1P.y);
+			pos_img_1P_name.x = pos_img_1P_gravestone.x + (img_gravestone_right.getwidth() - textwidth(str_peashooter_name)) / 2;
+			outtextxy_shaded(pos_img_1P_name.x, pos_img_1P_name.y, str_peashooter_name);
 			break;
 		case SelectorScene::PlayerType::Sunflower:
 			animation_sunflower.on_draw(camera, pos_animation_1P.x, pos_animation_1P.y);
+			pos_img_1P_name.x = pos_img_1P_gravestone.x + (img_gravestone_right.getwidth() - textwidth(str_sunflower_name)) / 2;
+			outtextxy_shaded(pos_img_1P_name.x, pos_img_1P_name.y, str_sunflower_name);
 			break;
 		case SelectorScene::PlayerType::Invalid:
 			break;
@@ -118,9 +164,13 @@ public:
 		{
 		case SelectorScene::PlayerType::Peashooter:
 			animation_peashooter.on_draw(camera, pos_animation_2P.x, pos_animation_2P.y);
+			pos_img_2P_name.x = pos_img_2P_gravestone.x + (img_gravestone_left.getwidth() - textwidth(str_peashooter_name)) / 2;
+			outtextxy_shaded(pos_img_2P_name.x, pos_img_2P_name.y, str_peashooter_name);
 			break;
 		case SelectorScene::PlayerType::Sunflower:
 			animation_sunflower.on_draw(camera, pos_animation_2P.x, pos_animation_2P.y);
+			pos_img_2P_name.x = pos_img_2P_gravestone.x + (img_gravestone_left.getwidth() - textwidth(str_sunflower_name)) / 2;
+			outtextxy_shaded(pos_img_2P_name.x, pos_img_2P_name.y, str_sunflower_name);
 			break;
 		case SelectorScene::PlayerType::Invalid:
 			break;
@@ -138,6 +188,56 @@ public:
 	void on_input(const ExMessage& msg){
 		if (msg.message == WM_KEYUP) {
 			scene_manager.switch_scene(SceneManager::SceneType::Menu);
+		}
+		switch (msg.message)
+		{
+		case WM_KEYDOWN:
+			switch (msg.vkcode)
+			{
+				// 'A'
+			case 0x41:
+				is_btn_1P_left_down = true;
+				break;
+				// 'D'
+			case 0x44:
+				is_btn_1P_right_down = true;
+				break;
+				// '←'
+			case VK_LEFT:
+				is_btn_2P_right_down = true;
+				break;
+				// '→'
+			case VK_RIGHT:
+				is_btn_2P_right_down = true;
+				break;
+			default:
+				break;
+			}
+		case WM_KEYUP:
+			switch (msg.vkcode)
+			{
+				// 'A'
+			case 0x41:
+				is_btn_1P_left_down = false;
+				player_type_1 = (PlayerType)(((int)PlayerType::Invalid + (int)player_type_1 - 1) % (int)PlayerType::Invalid);
+				break;
+				// 'D'
+			case 0x44:
+				is_btn_1P_right_down = false;
+				break;
+				// '←'
+			case VK_LEFT:
+				is_btn_2P_right_down = false;
+				break;
+				// '→'
+			case VK_RIGHT:
+				is_btn_2P_right_down = false;
+				break;
+			default:
+				break;
+			}
+		default:
+			break;
 		}
 	}
 
@@ -177,6 +277,14 @@ private:
 
 	LPCTSTR str_peashooter_name = _T("豌豆射手");
 	LPCTSTR str_sunflower_name = _T("向日葵");
+
+	int selector_background_scroll_offset_x = 0; // 背景板滚动距离
+
+	bool is_btn_1P_left_down = false;
+	bool is_btn_1P_right_down = false;
+	bool is_btn_2P_left_down = false;
+	bool is_btn_2P_right_down = false;
+
 private:
 	void outtextxy_shaded(int x, int y, LPCTSTR str) {
 		settextcolor(RGB(45, 45, 45));

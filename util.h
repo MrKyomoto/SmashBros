@@ -35,3 +35,12 @@ inline void putimage_alpha(const Camera& camera, int dst_x, int dst_y, IMAGE* im
 	AlphaBlend(GetImageHDC(GetWorkingImage()), (int)dst_x - pos_camera.x, (int)dst_y - pos_camera.y, width, height,
 		GetImageHDC(img), 0, 0, width, height, { AC_SRC_OVER,0,255,AC_SRC_ALPHA });
 }
+
+inline void putimage_alpha(int dst_x, int dst_y, int width, int height, IMAGE* img, int src_x, int src_y) {
+	int w = width > 0 ? width : img->getwidth();
+	int h = height > 0 ? height : img->getheight();
+	// 这个函数本身和putimage作用重叠,只是这个函数绘制的是带alpha通道的
+	AlphaBlend(GetImageHDC(GetWorkingImage()), dst_x, dst_y, w, h,
+		GetImageHDC(img), src_x, src_y, w, h, { AC_SRC_OVER,0,255,AC_SRC_ALPHA });
+}
+
