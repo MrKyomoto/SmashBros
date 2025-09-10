@@ -2,6 +2,8 @@
 #include "util.h"
 #include "camera.h"
 
+extern bool is_debug;
+
 class Platform
 {
 public:
@@ -16,11 +18,40 @@ public:
 
 	void on_draw(const Camera& camera) const {
 		putimage_alpha(camera, render_position.x, render_position.y, img);
+
+		if (is_debug) {
+			setlinecolor(RGB(255, 0, 0));
+			line(camera, (int)shape.left, (int)shape.y, (int)shape.right, (int)shape.y);
+
+		}
 	}
 
-public:
+	void set_shape(float y, float left, float right) {
+		shape.y = y;
+		shape.left = left;
+		shape.right = right;
+	}
+
+	const POINT& get_position() const {
+		return render_position;
+	}
+
+	void set_position(int x, int y) {
+		render_position.x = x;
+		render_position.y = y;
+	}
+
+	void set_img(IMAGE* img_platform) {
+		img = img_platform;
+	}
+
+	const IMAGE* get_img() const {
+		return img;
+	}
+
+private:
 	// 数据逻辑和渲染是分离的
-	CollisionShape shape;  // 数据逻辑, 用于检测碰撞
+	CollisionShape shape = { 0,0,0 };  // 数据逻辑, 用于检测碰撞
 
 	IMAGE* img = nullptr; // 渲染逻辑, 用于渲染平台图像
 	POINT render_position = { 0 };
