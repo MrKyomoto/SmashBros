@@ -32,6 +32,10 @@ public:
 		shape.right = right;
 	}
 
+	const CollisionShape& get_shape() const {
+		return this->shape;
+	}
+
 	const POINT& get_position() const {
 		return render_position;
 	}

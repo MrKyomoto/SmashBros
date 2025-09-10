@@ -4,6 +4,11 @@
 #include "vector2.h"
 #include "animation.h"
 #include "player_id.h"
+#include "platform.h"
+
+#include <iostream>
+
+extern std::vector<Platform> platform_list;
 
 class Player
 {
@@ -18,13 +23,17 @@ public:
 		if (direction != 0) {
 			is_facing_right = direction > 0;
 			current_animation = is_facing_right ? &animation_run_right : &animation_run_left;
+			float distance = direction * run_velocity * delta;
+			on_run(distance);
 		}
 		else {
 			current_animation = is_facing_right ? &animation_idle_right : &animation_idle_left;
 		}
 
-
+		move_and_collide(delta);
 		current_animation->on_update(delta);
+
+		//std::cout << "V now: " << velocity.y << std::endl;
 	}
 
 	virtual void on_draw(const Camera& camera){
@@ -84,6 +93,10 @@ public:
 				case 0x44:
 					is_right_key_down = false;
 					break;
+					// 'W'
+				case 0x57:
+					on_jump();
+					break;
 				default:
 					break;
 				}
@@ -96,6 +109,9 @@ public:
 					break;
 				case VK_RIGHT:
 					is_right_key_down = false;
+					break;
+				case VK_UP:
+					on_jump();
 					break;
 				default:
 					break;
@@ -119,8 +135,81 @@ public:
 		position.y = y;
 	}
 
+	virtual void on_run(float distance) {
+		position.x += distance;
+	}
+
+	virtual void on_jump() {
+
+		for (const Platform& platform : platform_list) {
+			const Platform::CollisionShape& shape = platform.get_shape();
+			bool is_collide_x = (max(position.x + size.x, shape.right) - min(position.x, shape.left) <= size.x + (shape.right - shape.left));
+			// 只要角色x和平台重合且角色脚的y和平台相同,则意味着已经落地, 可以重置跳跃次数
+			bool is_collide_y = shape.y == position.y + size.y;
+			if (is_collide_x && is_collide_y) {
+				jump_time = 2;
+			}
+		}
+		if (velocity.y <= -0.50 || jump_time == 0) {
+			return;
+		}
+
+		// TODO 可能以后要考虑加一个一段跳之后角色会变色,提示玩家此时再跳就是二段跳(参考蔚蓝)
+		switch (jump_time)
+		{
+		case 2:
+			velocity.y += jump_velocity_1;
+			break;
+		case 1:
+			velocity.y += jump_velocity_2;
+			break;
+		default:
+			break;
+		}
+		jump_time -= 1;
+	}
+protected:
+	const float run_velocity = 0.50f;
+	const float gravity = 1.6e-3f;
+	const float jump_velocity_1 = -0.70f;
+	const float jump_velocity_2 = -0.55f;
+
+	// 重力逻辑
+	void move_and_collide(int delta) {
+		velocity.y += gravity * delta;
+		position += velocity * (float)delta;
+
+		// 由于平台是单向可穿过的(从下边可以跳到上边),因此我们只需要在玩家速度向下(v.y > 0)时检测是否触碰到平台
+		if (velocity.y > 0) {
+			for (const Platform& platform : platform_list) {
+				const Platform::CollisionShape& shape = platform.get_shape();
+				// Xmax - Xmin <= 矩形宽度 + 线段长度 即意味着两个物体在x上有重合部分
+				bool is_collide_x = (max(position.x + size.x, shape.right) - min(position.x, shape.left) <= size.x + (shape.right - shape.left));
+				bool is_collide_y = (position.y <= shape.y && shape.y <= position.y + size.y);
+
+				if (is_collide_x && is_collide_y) {
+					// 不能简单的仅从是否在x y碰撞了就判断需要把角色停在平面上,
+					// 因为我们的角色可以从下方跳到平台上, 考虑这种情况: 玩家按下跳跃
+					// 在接下来的几帧中, 角色的部分碰撞箱开始和平台碰撞箱发生重合, 如果仅仅从判断是否碰撞的话, 这个时候画面上角色就瞬间被移到了平台上, 这不符合我们的需求
+					// 因此我们需要计算一下上一帧脚部的y坐标, 确保只有当y坐标在平台上方的时候才让角色停在平台上
+					float delta_pos_y = velocity.y * delta;
+					float last_tick_foot_pos_y = position.y + size.y - delta_pos_y;
+					if (last_tick_foot_pos_y <= shape.y) {
+						position.y = shape.y - size.y;
+						velocity.y = 0;
+
+						break;
+					}
+				}
+			}
+		}
+	}
+
 protected:
 	Vector2 position;
+	Vector2 size; // 角色尺寸
+	Vector2 velocity;
+	int jump_time = 2; // 能连续跳的数量
 
 	Animation animation_idle_left;
 	Animation animation_idle_right;
