@@ -4,6 +4,7 @@
 #include "camera.h"
 #include "util.h"
 #include "platform.h"
+#include "player.h"
 
 #include <iostream>
 
@@ -17,6 +18,9 @@ extern Camera main_camera;
 extern std::vector<Platform> platform_list;
 
 extern SceneManager scene_manager;
+
+extern Player* player_1;
+extern Player* player_2;
 
 class GameScene : public Scene
 {
@@ -60,7 +64,8 @@ public:
 	}
 
 	void on_update(int delta) {
-
+		player_1->on_update(delta);
+		player_2->on_update(delta);
 	}
 
 	void on_draw(const Camera& camera) {

@@ -11,6 +11,7 @@
 #include "scene_manager.h"
 #include "camera.h"
 #include "platform.h"
+#include "player.h"
 
 bool is_debug = false;
 
@@ -96,6 +97,9 @@ Scene* selector_scene = nullptr;
 SceneManager scene_manager;
 Camera main_camera;
 std::vector<Platform> platform_list;
+
+Player* player_1 = nullptr;
+Player* player_2 = nullptr;
 
 void flip_atlas(Atlas& src, Atlas& dst) {
 	dst.clear();

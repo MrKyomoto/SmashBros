@@ -4,6 +4,9 @@
 #include "camera.h"
 #include "animation.h"
 #include <iostream>
+#include "player.h"
+#include "peashooter_player.h"
+#include "sunflower_player.h"
 
 extern IMAGE img_VS;
 extern IMAGE img_1P;
@@ -34,6 +37,9 @@ extern IMAGE img_avatar_peashooter;
 extern IMAGE img_avatar_sunflower;
 
 extern SceneManager scene_manager;
+
+extern Player* player_1;
+extern Player* player_2;
 
 class SelectorScene : public Scene
 {
@@ -257,6 +263,32 @@ public:
 
 	void on_exit() {
 		std::cout << "Quit Selector menu" << std::endl;
+		switch (player_type_1)
+		{
+		case SelectorScene::PlayerType::Peashooter:
+			player_1 = new PeashooterPlayer();
+			break;
+		case SelectorScene::PlayerType::Sunflower:
+			break;
+			player_1 = new SunflowerPlayer();
+		case SelectorScene::PlayerType::Invalid:
+			break;
+		default:
+			break;
+		}
+		switch (player_type_2)
+		{
+		case SelectorScene::PlayerType::Peashooter:
+			player_2 = new PeashooterPlayer();
+			break;
+		case SelectorScene::PlayerType::Sunflower:
+			break;
+			player_2 = new SunflowerPlayer();
+		case SelectorScene::PlayerType::Invalid:
+			break;
+		default:
+			break;
+		}
 	}
 
 private:
