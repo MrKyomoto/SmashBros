@@ -12,6 +12,7 @@
 #include "camera.h"
 #include "platform.h"
 #include "player.h"
+#include "bullet.h"
 
 bool is_debug = false;
 
@@ -96,7 +97,9 @@ Scene* selector_scene = nullptr;
 
 SceneManager scene_manager;
 Camera main_camera;
+
 std::vector<Platform> platform_list;
+std::vector<Bullet*> bullet_list;
 
 Player* player_1 = nullptr;
 Player* player_2 = nullptr;

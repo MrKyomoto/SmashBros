@@ -5,6 +5,7 @@
 #include "animation.h"
 #include "player_id.h"
 #include "platform.h"
+#include "timer.h"
 
 #include <iostream>
 
@@ -15,11 +16,19 @@ class Player
 public:
 	Player() {
 		current_animation = &animation_idle_right;
+
+		timer_attack_cd.set_wait_time(attack_cd);
+		timer_attack_cd.set_one_shot(true);
+		timer_attack_cd.set_callback([&]() {
+			can_attack = true;
+			});
 	}
 	~Player() = default;
 
 	virtual void on_update(int delta) {
+
 		int direction = is_right_key_down - is_left_key_down;
+
 		if (direction != 0) {
 			is_facing_right = direction > 0;
 			current_animation = is_facing_right ? &animation_run_right : &animation_run_left;
@@ -31,9 +40,11 @@ public:
 		}
 
 		move_and_collide(delta);
+
 		current_animation->on_update(delta);
 
-		//std::cout << "V now: " << velocity.y << std::endl;
+		timer_attack_cd.on_update(delta);
+ 
 	}
 
 	virtual void on_draw(const Camera& camera){
@@ -97,6 +108,21 @@ public:
 				case 0x57:
 					on_jump();
 					break;
+					// 'F'
+				case 0x46:
+					if (can_attack) {
+						on_attack();
+						can_attack = false;
+						timer_attack_cd.restart();
+					}
+					break;
+					// 'G'
+				case 0x47:
+					if (mp >= 100) {
+						on_attack_ex();
+						mp = 0;
+					}
+					break;
 				default:
 					break;
 				}
@@ -112,6 +138,20 @@ public:
 					break;
 				case VK_UP:
 					on_jump();
+					break;
+					// '.'
+				case VK_OEM_PERIOD:
+					if (can_attack) {
+						on_attack();
+						can_attack = false;
+						timer_attack_cd.restart();
+					}
+					break;
+				case VK_OEM_2:
+					if (mp >= 100) {
+						on_attack_ex();
+						mp = 0;
+					}
 					break;
 				default:
 					break;
@@ -135,11 +175,25 @@ public:
 		position.y = y;
 	}
 
+	const Vector2& get_position() const {
+		return position;
+	}
+
+	const Vector2& get_size() const {
+		return size;
+	}
+
 	virtual void on_run(float distance) {
+		if (is_attacking_ex) {
+			return;
+		}
 		position.x += distance;
 	}
 
 	virtual void on_jump() {
+		if (is_attacking_ex) {
+			return;
+		}
 
 		for (const Platform& platform : platform_list) {
 			const Platform::CollisionShape& shape = platform.get_shape();
@@ -168,6 +222,9 @@ public:
 		}
 		jump_time -= 1;
 	}
+
+	virtual void on_attack() { }
+	virtual void on_attack_ex() { }
 protected:
 	const float run_velocity = 0.50f;
 	const float gravity = 1.6e-3f;
@@ -206,6 +263,9 @@ protected:
 	}
 
 protected:
+	int mp = 0;
+	int hp = 100;
+
 	Vector2 position;
 	Vector2 size; // 角色尺寸
 	Vector2 velocity;
@@ -215,6 +275,8 @@ protected:
 	Animation animation_idle_right;
 	Animation animation_run_left;
 	Animation animation_run_right;
+	Animation animation_attack_ex_left;
+	Animation animation_attack_ex_right;
 
 	Animation* current_animation = nullptr;
 
@@ -222,6 +284,13 @@ protected:
 
 	bool is_left_key_down = false;
 	bool is_right_key_down = false;
+
 	bool is_facing_right = true;
+
+	bool can_attack = true; // 是否可以普通攻击
+	int attack_cd = 500;
+	Timer timer_attack_cd;
+
+	bool is_attacking_ex = false; // 是否正在特殊攻击(有这个bool是因为我们希望放大招的时候角色不能随意的移动)
 };
 
