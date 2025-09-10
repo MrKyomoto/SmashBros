@@ -129,10 +129,12 @@
   <ItemGroup>
     <ClInclude Include="animation.h" />
     <ClInclude Include="atlas.h" />
+    <ClInclude Include="bullet.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="game_scene.h" />
     <ClInclude Include="menu_scene.h" />
     <ClInclude Include="peashooter_player.h" />
+    <ClInclude Include="pea_bullet.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="player.h" />
     <ClInclude Include="player_id.h" />
@@ -140,6 +142,8 @@
     <ClInclude Include="scene_manager.h" />
     <ClInclude Include="selector_scene.h" />
     <ClInclude Include="sunflower_player.h" />
+    <ClInclude Include="sun_bullet.h" />
+    <ClInclude Include="sun_bullet_ex.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="vector2.h" />
