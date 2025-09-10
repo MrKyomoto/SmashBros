@@ -10,6 +10,9 @@
 #include "selector_scene.h"
 #include "scene_manager.h"
 #include "camera.h"
+#include "platform.h"
+
+bool is_debug = false;
 
 IMAGE img_menu_background;
 
@@ -92,6 +95,7 @@ Scene* selector_scene = nullptr;
 
 SceneManager scene_manager;
 Camera main_camera;
+std::vector<Platform> platform_list;
 
 void flip_atlas(Atlas& src, Atlas& dst) {
 	dst.clear();
@@ -207,6 +211,9 @@ int main() {
 	load_game_resources();
 
 	initgraph(1280, 720, EW_SHOWCONSOLE);
+
+	settextstyle(28, 0, _T("IPix"));
+	setbkmode(TRANSPARENT);
 
 	BeginBatchDraw();
 
