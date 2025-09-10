@@ -183,12 +183,13 @@ public:
 
 		putimage_alpha(pos_img_tip.x, pos_img_tip.y, &img_selector_tip);
 
+		putimage_alpha(pos_1P_selector_btn_left.x, pos_1P_selector_btn_left.y, is_btn_1P_left_down ? &img_1P_selector_btn_down_left : &img_1P_selector_btn_idle_left);
+		putimage_alpha(pos_1P_selector_btn_right.x, pos_1P_selector_btn_right.y, is_btn_1P_right_down ? &img_1P_selector_btn_down_right : &img_1P_selector_btn_idle_right);
+		putimage_alpha(pos_2P_selector_btn_left.x, pos_2P_selector_btn_left.y, is_btn_2P_left_down ? &img_2P_selector_btn_down_left : &img_2P_selector_btn_idle_left);
+		putimage_alpha(pos_2P_selector_btn_right.x, pos_2P_selector_btn_right.y, is_btn_2P_right_down ? &img_2P_selector_btn_down_right : &img_2P_selector_btn_idle_right);
 	}
 
 	void on_input(const ExMessage& msg){
-		if (msg.message == WM_KEYUP) {
-			scene_manager.switch_scene(SceneManager::SceneType::Menu);
-		}
 		switch (msg.message)
 		{
 		case WM_KEYDOWN:
@@ -204,7 +205,7 @@ public:
 				break;
 				// '¡û'
 			case VK_LEFT:
-				is_btn_2P_right_down = true;
+				is_btn_2P_left_down = true;
 				break;
 				// '¡ú'
 			case VK_RIGHT:
@@ -213,6 +214,7 @@ public:
 			default:
 				break;
 			}
+			break;
 		case WM_KEYUP:
 			switch (msg.vkcode)
 			{
@@ -220,22 +222,34 @@ public:
 			case 0x41:
 				is_btn_1P_left_down = false;
 				player_type_1 = (PlayerType)(((int)PlayerType::Invalid + (int)player_type_1 - 1) % (int)PlayerType::Invalid);
+				mciSendString(_T("play ui_switch from 0"), NULL, 0, NULL);
 				break;
 				// 'D'
 			case 0x44:
 				is_btn_1P_right_down = false;
+				player_type_1 = (PlayerType)(((int)PlayerType::Invalid + (int)player_type_1 + 1) % (int)PlayerType::Invalid);
+				mciSendString(_T("play ui_switch from 0"), NULL, 0, NULL);
 				break;
 				// '¡û'
 			case VK_LEFT:
-				is_btn_2P_right_down = false;
+				is_btn_2P_left_down = false;
+				player_type_2 = (PlayerType)(((int)PlayerType::Invalid + (int)player_type_2 - 1) % (int)PlayerType::Invalid);
+				mciSendString(_T("play ui_switch from 0"), NULL, 0, NULL);
 				break;
 				// '¡ú'
 			case VK_RIGHT:
 				is_btn_2P_right_down = false;
+				player_type_2 = (PlayerType)(((int)PlayerType::Invalid + (int)player_type_2 + 1) % (int)PlayerType::Invalid);
+				mciSendString(_T("play ui_switch from 0"), NULL, 0, NULL);
+				break;
+			case VK_RETURN:
+				scene_manager.switch_scene(SceneManager::SceneType::Game);
+				mciSendString(_T("play ui_confirm from 0"), NULL, 0, NULL);
 				break;
 			default:
 				break;
 			}
+			break;
 		default:
 			break;
 		}
