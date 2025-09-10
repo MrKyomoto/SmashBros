@@ -66,6 +66,9 @@
     <ClInclude Include="sunflower_player.h">
       <Filter>头文件\Player</Filter>
     </ClInclude>
+    <ClInclude Include="player_id.h">
+      <Filter>头文件\Player</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

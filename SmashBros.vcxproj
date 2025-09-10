@@ -135,6 +135,7 @@
     <ClInclude Include="peashooter_player.h" />
     <ClInclude Include="platform.h" />
     <ClInclude Include="player.h" />
+    <ClInclude Include="player_id.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="scene_manager.h" />
     <ClInclude Include="selector_scene.h" />

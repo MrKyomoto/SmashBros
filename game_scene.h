@@ -29,6 +29,9 @@ public:
 	~GameScene() = default;
 
 	void on_enter() {
+		player_1->set_position(200, 50);
+		player_2->set_position(975, 50);
+
 		pos_img_sky.x = (getwidth() - img_sky.getwidth()) / 2;
 		pos_img_sky.y = (getheight() - img_sky.getheight()) / 2;
 
@@ -76,6 +79,9 @@ public:
 			platform.on_draw(camera);
 		}
 
+		player_1->on_draw(camera);
+		player_2->on_draw(camera);
+
 		if (is_debug) {
 			settextcolor(RGB(255, 0, 0));
 			outtextxy(15, 15, _T("Dubug mode ON, press <Q> to quit"));
@@ -83,6 +89,9 @@ public:
 	}
 
 	void on_input(const ExMessage& msg){
+		player_1->on_input(msg);
+		player_2->on_input(msg);
+
 		switch (msg.message)
 		{
 		case WM_KEYUP:

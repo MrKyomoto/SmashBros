@@ -7,6 +7,7 @@
 #include "player.h"
 #include "peashooter_player.h"
 #include "sunflower_player.h"
+#include "player_id.h"
 
 extern IMAGE img_VS;
 extern IMAGE img_1P;
@@ -269,8 +270,8 @@ public:
 			player_1 = new PeashooterPlayer();
 			break;
 		case SelectorScene::PlayerType::Sunflower:
-			break;
 			player_1 = new SunflowerPlayer();
+			break;
 		case SelectorScene::PlayerType::Invalid:
 			break;
 		default:
@@ -282,13 +283,16 @@ public:
 			player_2 = new PeashooterPlayer();
 			break;
 		case SelectorScene::PlayerType::Sunflower:
-			break;
 			player_2 = new SunflowerPlayer();
+			break;
 		case SelectorScene::PlayerType::Invalid:
 			break;
 		default:
 			break;
 		}
+
+		player_1->set_id(PlayerID::P1);
+		player_2->set_id(PlayerID::P2);
 	}
 
 private:
