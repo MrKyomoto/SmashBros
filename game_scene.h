@@ -6,6 +6,7 @@
 #include "platform.h"
 #include "player.h"
 #include "bullet.h"
+#include "status_bar.h"
 
 #include <iostream>
 
@@ -23,6 +24,9 @@ extern SceneManager scene_manager;
 extern Player* player_1;
 extern Player* player_2;
 
+extern IMAGE* img_player_1_avatar;
+extern IMAGE* img_player_2_avatar;
+
 extern std::vector<Bullet*> bullet_list;
 
 class GameScene : public Scene
@@ -32,6 +36,13 @@ public:
 	~GameScene() = default;
 
 	void on_enter() {
+		status_bar_1P.bind_player(player_1);
+		status_bar_1P.set_avatar(img_player_1_avatar);
+		status_bar_1P.set_position(235,625);
+		status_bar_2P.bind_player(player_2);
+		status_bar_2P.set_avatar(img_player_2_avatar);
+		status_bar_2P.set_position(675,625);
+
 		player_1->set_position(200, 50);
 		player_2->set_position(975, 50);
 
@@ -87,6 +98,9 @@ public:
 		for (Bullet* bullet : bullet_list) {
 			bullet->on_update(delta);
 		}
+
+		status_bar_1P.on_update(delta);
+		status_bar_2P.on_update(delta);
 	}
 
 	void on_draw(const Camera& camera) {
@@ -108,6 +122,9 @@ public:
 		for (const Bullet* bullet : bullet_list) {
 			bullet->on_draw(camera);
 		}
+
+		status_bar_1P.on_draw();
+		status_bar_2P.on_draw();
 	}
 
 	void on_input(const ExMessage& msg){
@@ -133,6 +150,9 @@ public:
 private:
 	POINT pos_img_sky = { 0 };
 	POINT pos_img_hills = { 0 };
+
+	StatusBar status_bar_1P;
+	StatusBar status_bar_2P;
 
 };
 

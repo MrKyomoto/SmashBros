@@ -42,6 +42,9 @@ extern SceneManager scene_manager;
 extern Player* player_1;
 extern Player* player_2;
 
+extern IMAGE* img_player_1_avatar;
+extern IMAGE* img_player_2_avatar;
+
 class SelectorScene : public Scene
 {
 public:
@@ -268,9 +271,11 @@ public:
 		{
 		case SelectorScene::PlayerType::Peashooter:
 			player_1 = new PeashooterPlayer();
+			img_player_1_avatar = &img_avatar_peashooter;
 			break;
 		case SelectorScene::PlayerType::Sunflower:
 			player_1 = new SunflowerPlayer();
+			img_player_1_avatar = &img_avatar_sunflower;
 			break;
 		case SelectorScene::PlayerType::Invalid:
 			break;
@@ -281,9 +286,11 @@ public:
 		{
 		case SelectorScene::PlayerType::Peashooter:
 			player_2 = new PeashooterPlayer();
+			img_player_2_avatar = &img_avatar_peashooter;
 			break;
 		case SelectorScene::PlayerType::Sunflower:
 			player_2 = new SunflowerPlayer();
+			img_player_2_avatar = &img_avatar_sunflower;
 			break;
 		case SelectorScene::PlayerType::Invalid:
 			break;

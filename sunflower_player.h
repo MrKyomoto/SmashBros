@@ -73,9 +73,6 @@ public:
 			animation_sun_text.on_draw(camera, (int)text_position.x, (int)text_position.y);
 		}
 
-		if (is_attacking_ex) {
-			// TODO
-		}
 	}
 
 	void on_attack() {

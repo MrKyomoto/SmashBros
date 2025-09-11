@@ -219,6 +219,15 @@ public:
 		return size;
 	}
 
+	const int get_hp() const{
+		return hp;
+	}
+
+	const int get_mp() const{
+		return mp;
+	}
+
+
 	virtual void on_run(float distance) {
 		if (is_attacking_ex) {
 			return;
@@ -261,6 +270,7 @@ public:
 
 	virtual void on_attack() { }
 	virtual void on_attack_ex() { }
+
 protected:
 	const float run_velocity = 0.50f;
 	const float gravity = 1.6e-3f;
@@ -319,6 +329,8 @@ protected:
 		is_invulnerable = true;
 		timer_invulnerable.restart();
 	}
+
+
 
 protected:
 	int mp = 0;

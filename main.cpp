@@ -104,6 +104,9 @@ std::vector<Bullet*> bullet_list;
 Player* player_1 = nullptr;
 Player* player_2 = nullptr;
 
+IMAGE* img_player_1_avatar = nullptr;
+IMAGE* img_player_2_avatar = nullptr;
+
 void flip_atlas(Atlas& src, Atlas& dst) {
 	dst.clear();
 	int num = src.get_size();
