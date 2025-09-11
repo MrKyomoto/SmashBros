@@ -40,7 +40,7 @@ public:
 		mciSendString(_T("play sun_explode_ex from 0"), NULL, 0, NULL);
 	}
 
-	bool check_collisiton(const Vector2& position, const Vector2& size) {
+	bool check_collision(const Vector2& position, const Vector2& size) {
 		bool is_collide_x = (max(this->position.x + this->size.x, position.x + size.x) - min(this->position.x, position.x) <= this->size.x + size.x);
 		bool is_collide_y = (max(this->position.y + this->size.y, position.y + size.y) - min(this->position.y, position.y) <= this->size.y + size.y);
 

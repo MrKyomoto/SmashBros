@@ -123,6 +123,7 @@ public:
 
 		bullet->set_callback([&]() { mp += 50; });
 
+		bullet_list.push_back(bullet);
 		mciSendString(_T("play sun_text from 0"), NULL, 0, NULL);
 	}
 private:
