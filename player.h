@@ -6,10 +6,13 @@
 #include "player_id.h"
 #include "platform.h"
 #include "timer.h"
+#include "bullet.h";
 
 #include <iostream>
 
 extern std::vector<Platform> platform_list;
+extern std::vector<Bullet*> bullet_list;
+extern bool is_debug;
 
 class Player
 {
@@ -22,6 +25,17 @@ public:
 		timer_attack_cd.set_callback([&]() {
 			can_attack = true;
 			});
+
+		timer_invulnerable.set_wait_time(750);
+		timer_invulnerable.set_one_shot(true);
+		timer_invulnerable.set_callback([&]() {
+			is_invulnerable = false;
+			});
+
+		timer_invulnerable_blink.set_wait_time(75);
+		timer_invulnerable_blink.set_callback([&]() {
+			is_showing_sketch_frame = !is_showing_sketch_frame;
+			});
 	}
 	~Player() = default;
 
@@ -30,7 +44,10 @@ public:
 		int direction = is_right_key_down - is_left_key_down;
 
 		if (direction != 0) {
-			is_facing_right = direction > 0;
+			if (!is_attacking_ex) {
+				is_facing_right = direction > 0;
+			}
+
 			current_animation = is_facing_right ? &animation_run_right : &animation_run_left;
 			float distance = direction * run_velocity * delta;
 			on_run(distance);
@@ -39,16 +56,35 @@ public:
 			current_animation = is_facing_right ? &animation_idle_right : &animation_idle_left;
 		}
 
+		if (is_attacking_ex) {
+			current_animation = is_facing_right ? &animation_attack_ex_right : &animation_attack_ex_left;
+		}
+
 		move_and_collide(delta);
 
 		current_animation->on_update(delta);
 
 		timer_attack_cd.on_update(delta);
+
+		timer_invulnerable.on_update(delta);
+		timer_invulnerable_blink.on_update(delta);
  
+		if (is_showing_sketch_frame) {
+			sketch_image(current_animation->get_image_frame(), &img_sketch);
+		}
 	}
 
 	virtual void on_draw(const Camera& camera){
-		current_animation->on_draw(camera, (int)position.x, (int)position.y);
+		if (hp > 0 && is_invulnerable && is_showing_sketch_frame) {
+			putimage_alpha(camera, (int)position.x, (int)position.y, &img_sketch);
+		}
+		else {
+			current_animation->on_draw(camera, (int)position.x, (int)position.y);
+		}
+		if (is_debug) {
+			setlinecolor(RGB(0, 125, 255));
+			rectangle((int)position.x, (int)position.y, (int)(position.x + size.x), (int)(position.y + size.y));
+		}
 
 	}
 
@@ -260,6 +296,28 @@ protected:
 				}
 			}
 		}
+
+		if (!is_invulnerable) {
+			for (Bullet* bullet : bullet_list) {
+				if (!bullet->get_valid() || bullet->get_collide_target() != id) {
+					continue;
+				}
+
+				if (bullet->check_collision(position, size)) {
+					make_invulnerable();
+
+					bullet->on_collide();
+					bullet->set_valid(false);
+					hp -= bullet->get_damage();
+				}
+			}
+		}
+
+	}
+
+	void make_invulnerable() {
+		is_invulnerable = true;
+		timer_invulnerable.restart();
 	}
 
 protected:
@@ -292,5 +350,13 @@ protected:
 	Timer timer_attack_cd;
 
 	bool is_attacking_ex = false; // 是否正在特殊攻击(有这个bool是因为我们希望放大招的时候角色不能随意的移动)
+
+	bool is_invulnerable = false; // 角色是否处于无敌状态
+	bool is_showing_sketch_frame = false; // 当前帧是否应该显示剪影
+
+	Timer timer_invulnerable;
+	Timer timer_invulnerable_blink;
+
+	IMAGE img_sketch;
 };
 

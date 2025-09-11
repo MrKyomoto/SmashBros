@@ -48,3 +48,17 @@ inline void line(const Camera& camera, int x1, int y1, int x2, int y2) {
 	const Vector2& pos_camera = camera.get_position();
 	line((int)(x1 - pos_camera.x), (int)(y1 - pos_camera.y), (int)(x2 - pos_camera.x), (int)(y2 - pos_camera.y));
 }
+
+inline void sketch_image(IMAGE* src, IMAGE* dst) {
+	int w = src->getwidth();
+	int h = src->getheight();
+	Resize(dst, w, h);
+	DWORD* src_buffer = GetImageBuffer(src);
+	DWORD* dst_buffer = GetImageBuffer(dst);
+	for (int y = 0; y < h; y++) {
+		for (int x = 0; x < w; x++) {
+			int index = y * w + x;
+			dst_buffer[index] = BGR(RGB(255, 255, 255)) | (src_buffer[index] & 0xFF000000);
+		}
+	}
+}

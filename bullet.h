@@ -6,6 +6,8 @@
 #include "player_id.h"
 #include <graphics.h>
 
+extern bool is_debug;
+
 class Bullet
 {
 public:
@@ -75,7 +77,14 @@ public:
 			&& this->position.y + this->size.y / 2 <= position.y + size.y;
 	}
 	virtual void on_update(int delta){ }
-	virtual void on_draw(const Camera& camera) const { }
+	virtual void on_draw(const Camera& camera) const {
+		if (is_debug) {
+			setlinecolor(RGB(255, 255, 255));
+			setfillcolor(RGB(255, 255, 255));
+			rectangle((int)position.x, (int)position.y, (int)(position.x + size.x), (int)(position.y + size.y));
+			solidcircle((int)(position.x + size.x / 2), (int)(position.y + size.y / 2), 5);
+		}
+	}
 
 protected:
 	Vector2 size;

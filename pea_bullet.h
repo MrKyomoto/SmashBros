@@ -1,9 +1,11 @@
 #pragma once
 #include "bullet.h"
 #include "animation.h"
+#include "camera.h"
 
 extern IMAGE img_pea;
 extern Atlas atlas_pea_break;
+extern Camera main_camera;
 
 class PeaBullet : public Bullet
 {
@@ -21,6 +23,9 @@ public:
 
 	void on_collide() {
 		Bullet::on_collide();
+
+		main_camera.shake(5, 25);
+
 		switch (rand() % 3)
 		{
 		case 0:
@@ -56,6 +61,8 @@ public:
 		else {
 			animation_break.on_draw(camera, (int)position.x, (int)position.y);
 		}
+
+		Bullet::on_draw(camera);
 	}
 
 private:

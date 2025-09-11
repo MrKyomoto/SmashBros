@@ -45,6 +45,8 @@ public:
 			});
 
 		attack_cd = 100;
+
+		timer_invulnerable.set_wait_time(1000);
 	}
 	~PeashooterPlayer() = default;
 

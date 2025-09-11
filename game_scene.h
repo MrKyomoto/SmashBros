@@ -5,6 +5,7 @@
 #include "util.h"
 #include "platform.h"
 #include "player.h"
+#include "bullet.h"
 
 #include <iostream>
 
@@ -21,6 +22,8 @@ extern SceneManager scene_manager;
 
 extern Player* player_1;
 extern Player* player_2;
+
+extern std::vector<Bullet*> bullet_list;
 
 class GameScene : public Scene
 {
@@ -69,6 +72,21 @@ public:
 	void on_update(int delta) {
 		player_1->on_update(delta);
 		player_2->on_update(delta);
+
+		main_camera.on_update(delta);
+
+		bullet_list.erase(std::remove_if(
+			bullet_list.begin(), bullet_list.end(),
+			[](const Bullet* bullet) {
+				bool deletable = bullet->check_removable();
+				if (deletable) delete bullet;
+				return deletable;
+			}),
+			bullet_list.end()
+		);
+		for (Bullet* bullet : bullet_list) {
+			bullet->on_update(delta);
+		}
 	}
 
 	void on_draw(const Camera& camera) {
@@ -85,6 +103,10 @@ public:
 		if (is_debug) {
 			settextcolor(RGB(255, 0, 0));
 			outtextxy(15, 15, _T("Dubug mode ON, press <Q> to quit"));
+		}
+
+		for (const Bullet* bullet : bullet_list) {
+			bullet->on_draw(camera);
 		}
 	}
 

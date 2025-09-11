@@ -72,6 +72,10 @@ public:
 			text_position.y = position.y - frame->getheight();
 			animation_sun_text.on_draw(camera, (int)text_position.x, (int)text_position.y);
 		}
+
+		if (is_attacking_ex) {
+			// TODO
+		}
 	}
 
 	void on_attack() {
@@ -83,7 +87,9 @@ public:
 		bullet_position.y = position.y;
 
 		bullet->set_position(bullet_position.x, bullet_position.y);
-		bullet->set_velocity(is_facing_right ? velocity_sun.x : -velocity_sun.x, velocity_sun.y);
+		int direction = is_right_key_down - is_left_key_down;
+
+		bullet->set_velocity(is_facing_right ? velocity_sun.x + run_velocity / 3 * direction: -velocity_sun.x + run_velocity / 3 * direction , velocity_sun.y);
 
 		bullet->set_collide_target(id == PlayerID::P1 ? PlayerID::P2 : PlayerID::P1);
 
@@ -119,6 +125,8 @@ public:
 		bullet->set_collide_target(id == PlayerID::P1 ? PlayerID::P2 : PlayerID::P1);
 
 		bullet->set_callback([&]() { mp += 50; });
+
+		mciSendString(_T("play sun_text from 0"), NULL, 0, NULL);
 	}
 private:
 	const float speed_sun_ex = 0.15f;

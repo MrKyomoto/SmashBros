@@ -34,9 +34,6 @@ public:
 	}
 
 	void on_update(int delta) {
-		// 摄像机向左 = 人物向右
-		//const Vector2 speed = { -0.35f, 0 };
-		//position += speed * (float)delta;
 		timer_shake.on_update(delta);
 		if (is_shaking) {
 			position.x = (-25 + rand() % 100) / 50.0f * shaking_strength;
