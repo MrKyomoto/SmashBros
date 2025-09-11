@@ -7,12 +7,17 @@
 #include "platform.h"
 #include "timer.h"
 #include "bullet.h";
+#include "particle.h"
 
 #include <iostream>
 
 extern std::vector<Platform> platform_list;
 extern std::vector<Bullet*> bullet_list;
 extern bool is_debug;
+
+extern Atlas atlas_run_effect;
+extern Atlas atlas_jump_effect;
+extern Atlas atlas_land_effect;
 
 class Player
 {
@@ -36,6 +41,38 @@ public:
 		timer_invulnerable_blink.set_callback([&]() {
 			is_showing_sketch_frame = !is_showing_sketch_frame;
 			});
+
+		timer_run_effect_generation.set_wait_time(75);
+		timer_run_effect_generation.set_callback([&]() {
+			Vector2 particle_position;
+			IMAGE* frame = atlas_run_effect.get_image(0);
+			particle_position.x = position.x + (size.x - frame->getwidth()) / 2;
+			particle_position.y = position.y + size.y - frame->getheight();
+			particle_list.emplace_back(particle_position, &atlas_run_effect, 45);
+			});
+
+		// 死亡的粒子生成速度更快, 存活时间更长, 以达到拖尾效果
+		timer_die_effect_generation.set_wait_time(35);
+		timer_die_effect_generation.set_callback([&]() {
+			Vector2 particle_position;
+			IMAGE* frame = atlas_run_effect.get_image(0);
+			particle_position.x = position.x + (size.x - frame->getwidth()) / 2;
+			particle_position.y = position.y + size.y - frame->getheight();
+			particle_list.emplace_back(particle_position, &atlas_run_effect, 150);
+			});
+
+		animation_jump_effect.set_atlas(&atlas_jump_effect);
+		animation_jump_effect.set_interval(25);
+		animation_jump_effect.set_loop(false);
+		animation_jump_effect.set_callback([&]() {
+			is_jump_effect_visible = false;
+			});
+		animation_land_effect.set_atlas(&atlas_land_effect);
+		animation_land_effect.set_interval(50);
+		animation_land_effect.set_loop(false);
+		animation_land_effect.set_callback([&]() {
+			is_land_effect_visible = false;
+			});
 	}
 	~Player() = default;
 
@@ -54,6 +91,8 @@ public:
 		}
 		else {
 			current_animation = is_facing_right ? &animation_idle_right : &animation_idle_left;
+
+			timer_run_effect_generation.pause();
 		}
 
 		if (is_attacking_ex) {
@@ -72,15 +111,45 @@ public:
 		if (is_showing_sketch_frame) {
 			sketch_image(current_animation->get_image_frame(), &img_sketch);
 		}
+
+		timer_run_effect_generation.on_update(delta);
+		if (hp <= 0) {
+			timer_die_effect_generation.on_update(delta);
+		}
+
+		particle_list.erase(std::remove_if(
+			particle_list.begin(), particle_list.end(),
+			[](const Particle& particle) {
+				return !particle.check_valid();
+			}),
+			particle_list.end()
+		);
+
+		for (Particle& particle : particle_list) {
+			particle.on_update(delta);
+		}
+
+		if (is_jump_effect_visible) {
+			animation_jump_effect.on_update(delta);
+		}
 	}
 
 	virtual void on_draw(const Camera& camera){
+		for (Particle& particle : particle_list) {
+			particle.on_draw(camera);
+		}
+
 		if (hp > 0 && is_invulnerable && is_showing_sketch_frame) {
 			putimage_alpha(camera, (int)position.x, (int)position.y, &img_sketch);
 		}
 		else {
 			current_animation->on_draw(camera, (int)position.x, (int)position.y);
 		}
+
+		if (is_jump_effect_visible) {
+			animation_jump_effect.on_draw(camera,(int)position_jump_effect.x,(int)position_jump_effect.y);
+		}
+
 		if (is_debug) {
 			setlinecolor(RGB(0, 125, 255));
 			rectangle((int)position.x, (int)position.y, (int)(position.x + size.x), (int)(position.y + size.y));
@@ -233,6 +302,8 @@ public:
 			return;
 		}
 		position.x += distance;
+
+		timer_run_effect_generation.resume();
 	}
 
 	virtual void on_jump() {
@@ -266,6 +337,13 @@ public:
 			break;
 		}
 		jump_time -= 1;
+		
+		is_jump_effect_visible = true;
+		animation_jump_effect.reset();
+
+		IMAGE* effect_frame = animation_jump_effect.get_image_frame();
+		position_jump_effect.x = position.x + (size.x - effect_frame->getwidth()) / 2;
+		position_jump_effect.y = position.y + size.y - effect_frame->getheight();
 	}
 
 	virtual void on_attack() { }
@@ -330,8 +408,6 @@ protected:
 		timer_invulnerable.restart();
 	}
 
-
-
 protected:
 	int mp = 0;
 	int hp = 100;
@@ -347,6 +423,14 @@ protected:
 	Animation animation_run_right;
 	Animation animation_attack_ex_left;
 	Animation animation_attack_ex_right;
+	Animation animation_jump_effect;
+	Animation animation_land_effect;
+
+	bool is_jump_effect_visible = false;
+	bool is_land_effect_visible = false;
+
+	Vector2 position_jump_effect;
+	Vector2 position_land_effect;
 
 	Animation* current_animation = nullptr;
 
@@ -370,5 +454,10 @@ protected:
 	Timer timer_invulnerable_blink;
 
 	IMAGE img_sketch;
+
+	// 由于当前阶段粒子较为单一,因此所谓粒子发射器的功能可由定时器替代
+	std::vector<Particle> particle_list;
+	Timer timer_run_effect_generation;
+	Timer timer_die_effect_generation;
 };
 
