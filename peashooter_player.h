@@ -64,6 +64,9 @@ public:
 			timer_attack_ex.on_update(delta);
 			timer_spawn_pea_ex.on_update(delta);
 		}
+
+		//std::cout << "JUMP times: " << jump_time << std::endl;
+		//std::cout << "Player pos.y is: " << position.y << std::endl;
 	}
 
 	void on_attack() {

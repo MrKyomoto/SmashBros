@@ -62,3 +62,37 @@ inline void sketch_image(IMAGE* src, IMAGE* dst) {
 		}
 	}
 }
+
+// 添加到 util.h 中
+inline void white_overlay_image(IMAGE* src, IMAGE* dst, int alpha = 99) {
+	int w = src->getwidth();
+	int h = src->getheight();
+	Resize(dst, w, h); 
+
+	DWORD* src_buffer = GetImageBuffer(src);
+	DWORD* dst_buffer = GetImageBuffer(dst);
+
+	for (int y = 0; y < h; y++) {
+		for (int x = 0; x < w; x++) {
+			int index = y * w + x;
+			DWORD src_pixel = src_buffer[index];  // 源像素（格式：0xAARRGGBB）
+
+			// 提取源像素的 alpha 通道（高8位）
+			BYTE src_alpha = (src_pixel >> 24) & 0xFF;
+			if (src_alpha == 0) {
+				// 完全透明的像素直接保留（不处理）
+				dst_buffer[index] = src_pixel;
+				continue;
+			}
+
+			// 计算叠加后的颜色：白色 (255,255,255) 与原图颜色混合
+			// 公式：新颜色 = 白色 * 叠加透明度 + 原图颜色 * (1 - 叠加透明度)
+			BYTE red = 255 * alpha / 255 + ((src_pixel >> 16) & 0xFF) * (255 - alpha) / 255;
+			BYTE green = 255 * alpha / 255 + ((src_pixel >> 8) & 0xFF) * (255 - alpha) / 255;
+			BYTE blue = 255 * alpha / 255 + (src_pixel & 0xFF) * (255 - alpha) / 255;
+
+			// 组合新像素（保留原图 alpha 通道）
+			dst_buffer[index] = (src_alpha << 24) | (red << 16) | (green << 8) | blue;
+		}
+	}
+}

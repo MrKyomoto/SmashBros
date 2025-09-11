@@ -216,6 +216,7 @@ public:
 			// 'Q'
 			if (msg.vkcode == 0x51) {
 				is_debug = !is_debug;
+		//pos_dash_sketch[1].x = pos_dash_sketch[0].x + (position.x - pos_dash_sketch[0].x) / 2;
 			}
 		default:
 			break;

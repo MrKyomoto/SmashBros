@@ -28,6 +28,12 @@ public:
 	Player(bool facing_right = true) : is_facing_right(facing_right) {
 		current_animation = is_facing_right ? &animation_idle_right : &animation_idle_left;
 
+		timer_dash_cd.set_wait_time(2500);
+		timer_dash_cd.set_one_shot(true);
+		timer_dash_cd.set_callback([&]() {
+			can_dash = true;
+			});
+
 		timer_cursor_visibility.set_wait_time(2500);
 		timer_cursor_visibility.set_one_shot(true);
 		timer_cursor_visibility.set_callback([&]() {
@@ -130,6 +136,10 @@ public:
 			sketch_image(current_animation->get_image_frame(), &img_sketch);
 		}
 
+		if (jump_time == 1) {
+			white_overlay_image(current_animation->get_image_frame(), &img_can_jump_or_dash);
+		}
+
 		timer_run_effect_generation.on_update(delta);
 		if (hp <= 0) {
 			timer_die_effect_generation.on_update(delta);
@@ -157,6 +167,9 @@ public:
 		if (is_cursor_visible) {
 			timer_cursor_visibility.on_update(delta);
 		}
+
+		timer_dash_cd.on_update(delta);
+
 	}
 
 	virtual void on_draw(const Camera& camera){
@@ -164,11 +177,21 @@ public:
 			particle.on_draw(camera);
 		}
 
+		if (!can_dash) {
+			putimage_alpha(camera, pos_dash_sketch[0].x, pos_dash_sketch[0].y, &img_dashing_sketch);
+			putimage_alpha(camera, pos_dash_sketch[1].x, pos_dash_sketch[1].y, &img_dashing_sketch);
+		}
+
 		if (hp > 0 && is_invulnerable && is_showing_sketch_frame) {
 			putimage_alpha(camera, (int)position.x, (int)position.y, &img_sketch);
 		}
 		else {
-			current_animation->on_draw(camera, (int)position.x, (int)position.y);
+			if (jump_time != 1) {
+				current_animation->on_draw(camera, (int)position.x, (int)position.y);
+			}
+			else {
+				putimage_alpha(camera, (int)position.x, (int)position.y, &img_can_jump_or_dash);
+			}
 		}
 
 		if (is_jump_effect_visible) {
@@ -271,6 +294,14 @@ public:
 						mp = 0;
 					}
 					break;
+					// 'J'
+				case 0x4A:
+					if (jump_time == 1 && can_dash) {
+						//jump_time -= 1;
+						on_dash();
+						can_dash = false;
+						timer_dash_cd.restart();
+					}
 				default:
 					break;
 				}
@@ -301,6 +332,13 @@ public:
 						mp = 0;
 					}
 					break;
+				case VK_OEM_COMMA:
+					if (jump_time == 1 && can_dash) {
+						//jump_time -= 1;
+						on_dash();
+						can_dash = false;
+						timer_dash_cd.restart();
+					}
 				default:
 					break;
 				}
@@ -354,15 +392,6 @@ public:
 			return;
 		}
 
-		for (const Platform& platform : platform_list) {
-			const Platform::CollisionShape& shape = platform.get_shape();
-			bool is_collide_x = (max(position.x + size.x, shape.right) - min(position.x, shape.left) <= size.x + (shape.right - shape.left));
-			// 只要角色x和平台重合且角色脚的y和平台相同,则意味着已经落地, 可以重置跳跃次数
-			bool is_collide_y = shape.y == position.y + size.y;
-			if (is_collide_x && is_collide_y) {
-				jump_time = 2;
-			}
-		}
 		if (velocity.y <= -0.50 || jump_time == 0) {
 			return;
 		}
@@ -387,6 +416,28 @@ public:
 		IMAGE* effect_frame = animation_jump_effect.get_image_frame();
 		position_jump_effect.x = position.x + (size.x - effect_frame->getwidth()) / 2;
 		position_jump_effect.y = position.y + size.y - effect_frame->getheight();
+	}
+
+	virtual void on_dash() {
+		if (is_attacking_ex) {
+			return;
+		}
+
+		sketch_image(current_animation->get_image_frame(), &img_dashing_sketch);
+
+		pos_dash_sketch[0] = get_position();
+
+		position.x += is_facing_right ? dash_speed : -dash_speed;
+		pos_dash_sketch[1].x = position.x;
+		if (velocity.y > 0) {
+			pos_dash_sketch[1].y = pos_dash_sketch[0].y + 20;
+		}
+		else if (velocity.y == 0) {
+			pos_dash_sketch[1].y = pos_dash_sketch[0].y;
+		}
+		else {
+			pos_dash_sketch[1].y = pos_dash_sketch[0].y - 20;
+		}
 	}
 
 	virtual void on_land() {
@@ -437,6 +488,7 @@ protected:
 					if (last_tick_foot_pos_y <= shape.y) {
 						position.y = shape.y - size.y;
 						velocity.y = 0;
+						jump_time = 2;
 
 						if (velocity_y_prev != 0) {
 							on_land();
@@ -541,5 +593,14 @@ protected:
 	Vector2 last_hurt_direction; // 最后一次受击方向,用于计算死亡击飞效果
 
 	bool is_dead = false;
+
+	bool can_dash = true;
+	Timer timer_dash_cd;
+	IMAGE img_dashing_sketch;
+	Vector2 pos_dash_sketch[2];
+
+	IMAGE img_can_jump_or_dash;
+protected:
+	const float dash_speed = 85.0f;
 };
 

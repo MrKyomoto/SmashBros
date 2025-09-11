@@ -13,7 +13,7 @@ public:
 	PeaBullet() {
 		size.x = 64;
 		size.y = 64;
-		damage = 10;
+		damage = 15;
 		animation_break.set_atlas(&atlas_pea_break);
 		animation_break.set_interval(100);
 		animation_break.set_loop(false);
