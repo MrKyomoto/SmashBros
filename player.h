@@ -132,6 +132,9 @@ public:
 		if (is_jump_effect_visible) {
 			animation_jump_effect.on_update(delta);
 		}
+		if (is_land_effect_visible) {
+			animation_land_effect.on_update(delta);
+		}
 	}
 
 	virtual void on_draw(const Camera& camera){
@@ -149,6 +152,11 @@ public:
 		if (is_jump_effect_visible) {
 			animation_jump_effect.on_draw(camera,(int)position_jump_effect.x,(int)position_jump_effect.y);
 		}
+
+		if (is_land_effect_visible) {
+			animation_land_effect.on_draw(camera,(int)position_land_effect.x,(int)position_land_effect.y);
+		}
+
 
 		if (is_debug) {
 			setlinecolor(RGB(0, 125, 255));
@@ -346,6 +354,15 @@ public:
 		position_jump_effect.y = position.y + size.y - effect_frame->getheight();
 	}
 
+	virtual void on_land() {
+		is_land_effect_visible = true;
+		animation_land_effect.reset();
+
+		IMAGE* effect_frame = animation_land_effect.get_image_frame();
+		position_land_effect.x = position.x + (size.x - effect_frame->getwidth()) / 2;
+		position_land_effect.y = position.y + size.y - effect_frame->getheight();
+	}
+
 	virtual void on_attack() { }
 	virtual void on_attack_ex() { }
 
@@ -357,6 +374,9 @@ protected:
 
 	// 重力逻辑
 	void move_and_collide(int delta) {
+		// 记录前1帧的垂直速度
+		float velocity_y_prev = velocity.y;
+
 		velocity.y += gravity * delta;
 		position += velocity * (float)delta;
 
@@ -378,6 +398,10 @@ protected:
 					if (last_tick_foot_pos_y <= shape.y) {
 						position.y = shape.y - size.y;
 						velocity.y = 0;
+
+						if (velocity_y_prev != 0) {
+							on_land();
+						}
 
 						break;
 					}
