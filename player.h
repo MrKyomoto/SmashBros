@@ -19,11 +19,20 @@ extern Atlas atlas_run_effect;
 extern Atlas atlas_jump_effect;
 extern Atlas atlas_land_effect;
 
+extern IMAGE img_1P_cursor;
+extern IMAGE img_2P_cursor;
+
 class Player
 {
 public:
 	Player(bool facing_right = true) : is_facing_right(facing_right) {
 		current_animation = is_facing_right ? &animation_idle_right : &animation_idle_left;
+
+		timer_cursor_visibility.set_wait_time(2500);
+		timer_cursor_visibility.set_one_shot(true);
+		timer_cursor_visibility.set_callback([&]() {
+			is_cursor_visible = false;
+			});
 
 		timer_attack_cd.set_wait_time(attack_cd);
 		timer_attack_cd.set_one_shot(true);
@@ -99,6 +108,15 @@ public:
 			current_animation = is_facing_right ? &animation_attack_ex_right : &animation_attack_ex_left;
 		}
 
+		if (hp <= 0) {
+			current_animation = is_facing_right ? &animation_die_right : &animation_die_left;
+			if (!is_dead) {
+				// 只是为了让这个音效只播放一次所以使用了!is_dead
+				mciSendString(_T("play die from 0"), NULL, 0, NULL);
+			}
+			is_dead = true;
+		}
+
 		move_and_collide(delta);
 
 		current_animation->on_update(delta);
@@ -135,6 +153,10 @@ public:
 		if (is_land_effect_visible) {
 			animation_land_effect.on_update(delta);
 		}
+
+		if (is_cursor_visible) {
+			timer_cursor_visibility.on_update(delta);
+		}
 	}
 
 	virtual void on_draw(const Camera& camera){
@@ -157,6 +179,19 @@ public:
 			animation_land_effect.on_draw(camera,(int)position_land_effect.x,(int)position_land_effect.y);
 		}
 
+		if (is_cursor_visible) {
+			switch (id)
+			{
+			case PlayerID::P1:
+				putimage_alpha(camera, (int)(position.x + (size.x - img_1P_cursor.getwidth()) / 2), (int)(position.y - img_1P_cursor.getheight()), &img_1P_cursor);
+				break;
+			case PlayerID::P2:
+				putimage_alpha(camera, (int)(position.x + (size.x - img_2P_cursor.getwidth()) / 2), (int)(position.y - img_2P_cursor.getheight()), &img_2P_cursor);
+				break;
+			default:
+				break;
+			}
+		}
 
 		if (is_debug) {
 			setlinecolor(RGB(0, 125, 255));
@@ -419,12 +454,22 @@ protected:
 					continue;
 				}
 
+				if (hp <= 0) {
+					return;
+				}
+
 				if (bullet->check_collision(position, size)) {
 					make_invulnerable();
 
 					bullet->on_collide();
 					bullet->set_valid(false);
 					hp -= bullet->get_damage();
+					last_hurt_direction = bullet->get_position() - position;
+
+					if (hp <= 0) {
+						velocity.x = last_hurt_direction.x < 0 ? 0.35f : -0.35f;
+						velocity.y = -1.0f;
+					}
 				}
 			}
 		}
@@ -453,6 +498,8 @@ protected:
 	Animation animation_attack_ex_right;
 	Animation animation_jump_effect;
 	Animation animation_land_effect;
+	Animation animation_die_left;
+	Animation animation_die_right;
 
 	bool is_jump_effect_visible = false;
 	bool is_land_effect_visible = false;
@@ -487,5 +534,12 @@ protected:
 	std::vector<Particle> particle_list;
 	Timer timer_run_effect_generation;
 	Timer timer_die_effect_generation;
+
+	bool is_cursor_visible = true;
+	Timer timer_cursor_visibility;
+
+	Vector2 last_hurt_direction; // 最后一次受击方向,用于计算死亡击飞效果
+
+	bool is_dead = false;
 };
 

@@ -52,7 +52,7 @@ public:
 
 		pos_img_winner_text.x = -img_winner_bar.getwidth();
 		pos_img_winner_text.y = (getheight() - img_1P_winner.getheight()) / 2;
-		pos_x_img_winner_bar_dst = (getwidth() - img_1P_winner.getwidth()) / 2;
+		pos_x_img_winner_text_dst = (getwidth() - img_1P_winner.getwidth()) / 2;
 
 		timer_winner_slide_in.restart();
 		timer_winner_slide_in.set_wait_time(2500);
@@ -135,7 +135,6 @@ public:
 		const Vector2& position_player_2 = player_2->get_position();
 		if (position_player_1.y >= getheight() && position_player_1.y <= getheight() + 50) {
 			player_1->set_hp(0);
-			// 没有坠崖音效所以音效复用一下(
 			mciSendString(_T("play manba_out from 0"), NULL, 0, NULL);
 			main_camera.shake(50, 250);
 		}
@@ -174,6 +173,7 @@ public:
 			}
 
 		}
+
 	}
 
 	void on_draw(const Camera& camera) {
