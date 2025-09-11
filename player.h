@@ -22,8 +22,8 @@ extern Atlas atlas_land_effect;
 class Player
 {
 public:
-	Player() {
-		current_animation = &animation_idle_right;
+	Player(bool facing_right = true) : is_facing_right(facing_right) {
+		current_animation = is_facing_right ? &animation_idle_right : &animation_idle_left;
 
 		timer_attack_cd.set_wait_time(attack_cd);
 		timer_attack_cd.set_one_shot(true);
@@ -365,6 +365,10 @@ public:
 
 	virtual void on_attack() { }
 	virtual void on_attack_ex() { }
+
+	void set_hp(int val) {
+		hp = val;
+	}
 
 protected:
 	const float run_velocity = 0.50f;

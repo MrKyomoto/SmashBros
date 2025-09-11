@@ -17,7 +17,7 @@ extern Player* player_2;
 class SunflowerPlayer : public Player
 {
 public:
-	SunflowerPlayer() {
+	SunflowerPlayer(bool facing_right = true) : Player(facing_right) {
 		animation_idle_left.set_atlas(&atlas_sunflower_idle_left);
 		animation_idle_right.set_atlas(&atlas_sunflower_idle_right);
 		animation_run_left.set_atlas(&atlas_sunflower_run_left);

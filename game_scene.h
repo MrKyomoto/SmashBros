@@ -14,6 +14,11 @@ extern IMAGE img_sky;
 extern IMAGE img_hills;
 extern IMAGE img_platform_large;
 extern IMAGE img_platform_small;
+
+extern IMAGE img_1P_winner;
+extern IMAGE img_2P_winner;
+extern IMAGE img_winner_bar;
+
 extern bool is_debug;
 
 extern Camera main_camera;
@@ -36,6 +41,33 @@ public:
 	~GameScene() = default;
 
 	void on_enter() {
+		mciSendString(_T("play bgm_game repeat from 0"), NULL, 0, NULL);
+
+		is_game_over = false;
+		is_slide_out_started = false;
+
+		pos_img_winner_bar.x = -img_winner_bar.getwidth();
+		pos_img_winner_bar.y = (getheight() - img_winner_bar.getheight()) / 2;
+		pos_x_img_winner_bar_dst = (getwidth() - img_winner_bar.getwidth()) / 2;
+
+		pos_img_winner_text.x = -img_winner_bar.getwidth();
+		pos_img_winner_text.y = (getheight() - img_1P_winner.getheight()) / 2;
+		pos_x_img_winner_bar_dst = (getwidth() - img_1P_winner.getwidth()) / 2;
+
+		timer_winner_slide_in.restart();
+		timer_winner_slide_in.set_wait_time(2500);
+		timer_winner_slide_in.set_one_shot(true);
+		timer_winner_slide_in.set_callback([&]() {
+			is_slide_out_started = true;
+			});
+
+		timer_winner_slide_out.restart();
+		timer_winner_slide_out.set_wait_time(1000);
+		timer_winner_slide_out.set_one_shot(true);
+		timer_winner_slide_out.set_callback([&]() {
+			scene_manager.switch_scene(SceneManager::SceneType::Menu);
+			});
+
 		status_bar_1P.bind_player(player_1);
 		status_bar_1P.set_avatar(img_player_1_avatar);
 		status_bar_1P.set_position(235,625);
@@ -99,8 +131,49 @@ public:
 			bullet->on_update(delta);
 		}
 
+		const Vector2& position_player_1 = player_1->get_position();
+		const Vector2& position_player_2 = player_2->get_position();
+		if (position_player_1.y >= getheight() && position_player_1.y <= getheight() + 50) {
+			player_1->set_hp(0);
+			// 没有坠崖音效所以音效复用一下(
+			mciSendString(_T("play manba_out from 0"), NULL, 0, NULL);
+			main_camera.shake(50, 250);
+		}
+		if (position_player_2.y == getheight() && position_player_2.y <= getheight() + 50) {
+			player_2->set_hp(0);
+			mciSendString(_T("play manba_out from 0"), NULL, 0, NULL);
+			main_camera.shake(50, 250);
+		}
+		if (player_1->get_hp() <= 0 || player_2->get_hp() <= 0) {
+			if (!is_game_over) {
+				mciSendString(_T("stop bgm_game"),NULL,0,NULL);
+				mciSendString(_T("play ui_win from 0"),NULL,0,NULL);
+			}
+
+			is_game_over = true;
+		}
+
 		status_bar_1P.on_update(delta);
 		status_bar_2P.on_update(delta);
+
+		if (is_game_over) {
+			pos_img_winner_bar.x += (int)(speed_winner_bar * delta);
+			pos_img_winner_text.x += (int)(speed_winner_text * delta);
+
+			if (!is_slide_out_started) {
+				timer_winner_slide_in.on_update(delta);
+				if (pos_img_winner_bar.x > pos_x_img_winner_bar_dst) {
+					pos_img_winner_bar.x = pos_x_img_winner_bar_dst;
+				}
+				if (pos_img_winner_text.x > pos_x_img_winner_text_dst) {
+					pos_img_winner_text.x = pos_x_img_winner_text_dst;
+				}
+			}
+			else {
+				timer_winner_slide_out.on_update(delta);
+			}
+
+		}
 	}
 
 	void on_draw(const Camera& camera) {
@@ -123,8 +196,14 @@ public:
 			bullet->on_draw(camera);
 		}
 
-		status_bar_1P.on_draw();
-		status_bar_2P.on_draw();
+		if (!is_game_over) {
+			status_bar_1P.on_draw();
+			status_bar_2P.on_draw();
+		}
+		else {
+			putimage_alpha(pos_img_winner_bar.x, pos_img_winner_bar.y, &img_winner_bar);
+			putimage_alpha(pos_img_winner_text.x, pos_img_winner_text.y, player_1->get_hp() > 0 ? &img_1P_winner : &img_2P_winner);
+		}
 	}
 
 	void on_input(const ExMessage& msg){
@@ -145,6 +224,16 @@ public:
 
 	void on_exit() {
 		std::cout << "Quit game menu" << std::endl;
+		delete player_1;
+		player_1 = nullptr;
+		delete player_2;
+		player_2 = nullptr;
+
+		is_debug = false;
+
+		bullet_list.clear();
+		main_camera.reset();
+		mciSendString(_T("stop bgm_game"),NULL,0,NULL);
 	}
 
 private:
@@ -153,6 +242,20 @@ private:
 
 	StatusBar status_bar_1P;
 	StatusBar status_bar_2P;
+
+	bool is_game_over = false;
+
+	POINT pos_img_winner_bar = { 0 };
+	POINT pos_img_winner_text = { 0 };
+	int pos_x_img_winner_bar_dst = 0; // 结算动效背景移动的目标位置
+	int pos_x_img_winner_text_dst = 0;
+	Timer timer_winner_slide_in;
+	Timer timer_winner_slide_out;
+	bool is_slide_out_started = false;
+
+private:
+	const float speed_winner_bar = 3.0f;
+	const float speed_winner_text = 1.5f;
 
 };
 
